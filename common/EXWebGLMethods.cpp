@@ -597,9 +597,46 @@ NATIVE_METHOD(bindTexture) {
   return nullptr;
 }
 
-UNIMPL_NATIVE_METHOD(compressedTexImage2D)
+NATIVE_METHOD(compressedTexImage2D) {
+  CTX();
+  auto target = ARG(0, GLenum);
+  auto level = ARG(1, GLint);
+  auto internalformat = ARG(2, GLint);
+  auto width = ARG(3, GLsizei);
+  auto height = ARG(4, GLsizei);
+  auto border = ARG(5, GLint);
+  auto data = ARG(6, jsi::Object);
 
-UNIMPL_NATIVE_METHOD(compressedTexSubImage2D)
+  std::vector<uint8_t> vec = rawTypedArray(runtime, std::move(data));
+  auto imageSize = vec.size();
+
+  ctx->addToNextBatch([=, vec{std::move(vec)}] {
+    glCompressedTexImage2D(target, level, internalformat, width, height, border, imageSize, vec.data());
+  });
+
+  return nullptr;
+}
+
+NATIVE_METHOD(compressedTexSubImage2D) {
+  CTX();
+  auto target = ARG(0, GLenum);
+  auto level = ARG(1, GLint);
+  auto xoffset = ARG(2, GLint);
+  auto yoffset = ARG(3, GLint);
+  auto width = ARG(4, GLsizei);
+  auto height = ARG(5, GLsizei);
+  auto format = ARG(6, GLenum);
+  auto data = ARG(7, jsi::Object);
+
+  std::vector<uint8_t> vec = rawTypedArray(runtime, std::move(data));
+  auto imageSize = vec.size();
+
+  ctx->addToNextBatch([=, vec{std::move(vec)}] {
+    glCompressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, imageSize, vec.data());
+  });
+
+  return nullptr;
+}
 
 SIMPLE_NATIVE_METHOD(
     copyTexImage2D,
@@ -1926,6 +1963,8 @@ NATIVE_METHOD(getSupportedExtensions) {
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 
+#define GL_COMPRESSED_RGBA_ASTC_8x8_KHR 0x93B7
+
 NATIVE_METHOD(getExtension) {
   CTX();
   auto name = ARG(0, std::string);
@@ -1945,6 +1984,13 @@ NATIVE_METHOD(getExtension) {
         runtime, "MAX_TEXTURE_MAX_ANISOTROPY_EXT", jsi::Value(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT));
     return result;
   }
+
+  if (name == "WEBGL_compressed_texture_astc") {
+    jsi::Object result(runtime);
+    result.setProperty(runtime, "COMPRESSED_RGBA_ASTC_8x8_KHR", jsi::Value(GL_COMPRESSED_RGBA_ASTC_8x8_KHR));
+    return result;
+  }
+
   return jsi::Object(runtime);
 }
 
