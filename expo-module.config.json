@@ -2,9 +2,9 @@
   "platforms": ["apple", "android"],
   "apple": {
     "podspecPath": "./ExpoGL.podspec",
-    "modules": ["ExpoGLModule"]
+    "modules": ["ExpoGLModule", "ASTCModule"]
   },
   "android": {
-    "modules": ["expo.modules.gl.GLModule"]
+    "modules": ["expo.modules.gl.GLModule", "expo.modules.gl.ASTCModule"]
   }
 }
